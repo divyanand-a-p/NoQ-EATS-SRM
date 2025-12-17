@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
+  <title>NoQ-EATS Control Tower</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1A1A1A" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body>
+
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="page page-center active">
+    <div class="login-card glass-panel">
+      <h1 class="app-title">NoQ-EATS</h1>
+      <p class="app-subtitle">Control Tower – Admin Access</p>
+      <button id="adminLoginBtn" class="btn btn-gold">
+        <span>Sign in with Google</span>
+      </button>
+      <p id="authError" class="error-message"></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="appPage" class="page">
+    <header class="main-header">
+      <div class="header-left">
+        <span class="header-logo">NoQ-EATS</span>
+        <span class="header-tag">Control&nbsp;Tower</span>
+      </div>
+      <div class="header-right">
+        <span id="adminEmail" class="header-email"></span>
+        <button id="logoutBtn" class="btn btn-outline">
+          LOG OUT
+        </button>
+      </div>
+    </header>
+
+    <div class="main-layout">
+      <!-- SIDE NAV -->
+      <nav class="side-nav">
+        <div class="nav-section">
+          <button class="nav-item active" data-view="dashboardView">
+            Dashboard
+          </button>
+          <button class="nav-item" data-view="canteensView">
+            Canteens
+          </button>
+          <button class="nav-item" data-view="analyticsView">
+            Analytics
+          </button>
+        </div>
+      </nav>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+
+        <!-- DASHBOARD VIEW -->
+        <section id="dashboardView" class="view active">
+          <h2 class="view-title">Platform Overview</h2>
+
+          <div class="stat-grid">
+            <div class="stat-card glass-panel">
+              <p>ORDERS TODAY</p>
+              <h3 id="statOrdersToday">--</h3>
+            </div>
+            <div class="stat-card glass-panel">
+              <p>ACTIVE ORDERS</p>
+              <h3 id="statActiveOrders">--</h3>
+            </div>
+            <div class="stat-card glass-panel">
+              <p>TOTAL USERS</p>
+              <h3 id="statTotalUsers">--</h3>
+            </div>
+            <div class="stat-card glass-panel">
+              <p>TOTAL CANTEENS</p>
+              <h3 id="statTotalCanteens">--</h3>
+            </div>
+            <div class="stat-card glass-panel">
+              <p>DATE</p>
+              <h3 id="statDate">--/--/----</h3>
+            </div>
+          </div>
+
+          <div class="section-row">
+            <div class="section-card glass-panel">
+              <h3>Quick Links</h3>
+              <div class="quick-links">
+                <button class="btn btn-sm" data-view-link="canteensView">
+                  Manage Canteens
+                </button>
+                <a
+                  href="https://dashboard.razorpay.com/"
+                  target="_blank"
+                  class="btn btn-sm btn-outline"
+                >
+                  Cashflow (Razorpay)
+                </a>
+                <a
+                  href="https://forms.google.com"
+                  target="_blank"
+                  class="btn btn-sm btn-outline"
+                >
+                  Feedbacks
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CANTEENS LIST VIEW -->
+        <section id="canteensView" class="view">
+          <div class="view-header">
+            <h2 class="view-title">Canteen Controls</h2>
+            <button id="addCanteenBtn" class="btn btn-gold">
+              + Add Canteen
+            </button>
+          </div>
+          <div id="canteenList" class="card-grid"></div>
+        </section>
+
+        <!-- CANTEEN EDITOR VIEW -->
+        <section id="canteenEditorView" class="view">
+          <div class="view-header">
+            <button class="btn btn-outline" data-view-link="canteensView">
+              ← Back
+            </button>
+            <h2 id="editorTitle" class="view-title">New Canteen</h2>
+            <button id="deleteCanteenBtn" class="btn btn-danger btn-sm hidden">
+              Delete Canteen
+            </button>
+          </div>
+
+          <div class="two-column">
+            <!-- LEFT: DETAILS -->
+            <div class="panel glass-panel">
+              <h3>Canteen Details</h3>
+
+              <label class="form-label">
+                Name
+                <input type="text" id="canteenName" />
+              </label>
+
+              <label class="form-label">
+                Image URL
+                <input type="url" id="canteenImageUrl" />
+              </label>
+
+              <label class="form-label">
+                Location (display to students)
+                <input type="text" id="canteenLocation" />
+              </label>
+
+              <div class="form-row">
+                <label class="toggle-label">
+                  <input type="checkbox" id="canteenFeatured" />
+                  <span class="toggle-slider"></span>
+                  <span>Featured in FT. (max 5)</span>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label class="toggle-label">
+                  <input type="checkbox" id="canteenIsOpen" />
+                  <span class="toggle-slider"></span>
+                  <span>Open (visible to students)</span>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label class="toggle-label">
+                  <input type="checkbox" id="canteenAcceptingOrders" />
+                  <span class="toggle-slider"></span>
+                  <span>Accepting new orders</span>
+                </label>
+              </div>
+
+              <div class="button-row">
+                <button id="saveCanteenBtn" class="btn btn-gold">
+                  Save Canteen
+                </button>
+                <button id="editOwnersBtn" class="btn btn-outline">
+                  Owner Emails
+                </button>
+                <button id="editPaymentBtn" class="btn btn-outline">
+                  Payment Settings
+                </button>
+              </div>
+            </div>
+
+            <!-- RIGHT: DISHES -->
+            <div class="panel glass-panel">
+              <div class="panel-header">
+                <h3>Dishes</h3>
+                <button id="addDishBtn" class="btn btn-sm btn-gold">
+                  + Add Dish
+                </button>
+              </div>
+              <div id="dishList" class="dish-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ANALYTICS VIEW (nowww) -->
+       <!-- ANALYTICS VIEW -->
+<section id="analyticsView" class="view">
+  <div class="view-header">
+    <h2 class="view-title">Analytics & Transactions</h2>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="analytics-controls glass-panel">
+    <div class="analytics-filter-group">
+      <label>
+        Canteen
+        <select id="analyticsCanteenSelect"></select>
+      </label>
+    </div>
+    <div class="analytics-filter-group">
+      <label>
+        Range
+        <select id="analyticsRangeSelect">
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+        </select>
+      </label>
+    </div>
+    <div class="analytics-actions">
+      <button id="analyticsRefreshBtn" class="btn btn-outline btn-sm">
+        Refresh
+      </button>
+      <button id="analyticsDeleteBtn" class="btn btn-danger btn-sm">
+        Delete Data in Range
+      </button>
+    </div>
+  </div>
+
+  <!-- SUMMARY CARDS -->
+  <div class="analytics-summary-grid">
+    <div class="stat-card glass-panel">
+      <p>ORDERS</p>
+      <h3 id="summaryOrders">--</h3>
+    </div>
+    <div class="stat-card glass-panel">
+      <p>REVENUE (ITEMS TOTAL)</p>
+      <h3 id="summaryRevenue">--</h3>
+    </div>
+    <div class="stat-card glass-panel">
+      <p>AVG ORDER VALUE</p>
+      <h3 id="summaryAov">--</h3>
+    </div>
+    <div class="stat-card glass-panel">
+      <p>TOP DISHES</p>
+      <h3 id="summaryTopDishes" class="summary-top-dishes">--</h3>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS TABLE -->
+  <div class="transactions-panel glass-panel">
+    <div class="transactions-header">
+      <h3>Transactions</h3>
+      <p id="transactionsMeta" class="transactions-meta">
+        Select a canteen and range to see orders.
+      </p>
+    </div>
+
+    <div class="transactions-table-wrapper">
+      <table class="transactions-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Order</th>
+            <th>User</th>
+            <th>Items</th>
+            <th>Total (₹)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="transactionsBody">
+          <tr>
+            <td colspan="6" style="text-align:center; font-size:0.85rem; color:#888;">
+              No data loaded.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- OWNER EMAILS MODAL -->
+  <div id="ownerModal" class="modal">
+    <div class="modal-body glass-panel">
+      <div class="modal-header">
+        <h3>Owner Emails</h3>
+        <button class="modal-close" data-close-modal="ownerModal">×</button>
+      </div>
+      <p class="modal-subtitle">
+        Only these Google accounts can access the Owner App for this canteen.
+      </p>
+      <div class="form-row">
+        <input
+          type="email"
+          id="ownerEmailInput"
+          placeholder="owner@example.com"
+        />
+        <button id="addOwnerEmailBtn" class="btn btn-gold btn-sm">Add</button>
+      </div>
+      <div id="ownerEmailList" class="pill-list"></div>
+      <div class="modal-footer">
+        <button id="saveOwnersBtn" class="btn btn-gold">Save Owners</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISH MODAL -->
+  <div id="dishModal" class="modal">
+    <div class="modal-body glass-panel">
+      <div class="modal-header">
+        <h3 id="dishModalTitle">Add Dish</h3>
+        <button class="modal-close" data-close-modal="dishModal">×</button>
+      </div>
+
+      <label class="form-label">
+        Image URL
+        <input type="url" id="dishImageUrl" />
+      </label>
+
+      <label class="form-label">
+        Name
+        <input type="text" id="dishName" />
+      </label>
+
+      <label class="form-label">
+        Price (₹)
+        <input type="number" id="dishPrice" min="0" />
+      </label>
+
+      <label class="form-label">
+        Category
+        <input
+          type="text"
+          id="dishCategory"
+          placeholder="e.g., Main Course / Rolls"
+        />
+      </label>
+
+      <div class="form-row">
+        <label class="toggle-label">
+          <input type="checkbox" id="dishIsVeg" />
+          <span class="toggle-slider"></span>
+          <span>Veg (unchecked = Non-Veg)</span>
+        </label>
+      </div>
+
+      <div class="modal-footer">
+        <button id="saveDishBtn" class="btn btn-gold">Save Dish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIMPLE TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="js/firebase-init.js"></script>
+  <script type="module" src="js/admin-app.js"></script>
+</body>
+</html>
