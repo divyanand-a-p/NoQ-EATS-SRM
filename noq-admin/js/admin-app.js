@@ -26,6 +26,8 @@ const state = {
   tempOwnerEmails: []
 };
 
+let existingCanteen = null;
+
 const analyticsState = {
   selectedCanteenId: '',
   selectedRange: 'today',
@@ -625,7 +627,8 @@ function newCanteenState() {
 async function openCanteenEditor(canteenId) {
   const canteen = state.canteens.find(c => c.id === canteenId);
   if (!canteen) return;
-
+  existingCanteen = canteen; // ✅ STORE ORIGINAL
+ 
   state.currentCanteenId = canteenId;
   ui.editorTitle.textContent = `Edit – ${canteen.name}`;
   ui.deleteCanteenBtn.classList.remove('hidden');
@@ -636,6 +639,9 @@ async function openCanteenEditor(canteenId) {
   ui.canteenFeatured.checked = !!canteen.isFeatured;
   ui.canteenIsOpen.checked = !!canteen.isOpen;
   ui.canteenAcceptingOrders.checked = canteen.acceptingOrders !== false;
+  ui.canteenOrderPrefix.value = canteen.orderPrefix || '';
+  ui.canteenOrderPrefix.disabled = true; // 🔒 LOCK PREFIX
+
 
   state.tempOwnerEmails = (canteen.owners || []).slice();
   renderOwnerPills();
@@ -653,7 +659,8 @@ async function loadDishesForCanteen(canteenId) {
 }
 
 async function saveCanteen() {
-  const orderPrefix = validateOrderPrefix(ui.canteenOrderPrefix.value.trim().toUpperCase());
+  const isEdit = !!state.currentCanteenId;
+
   const name = ui.canteenName.value.trim();
   const imageUrl = ui.canteenImageUrl.value.trim();
   const location = ui.canteenLocation.value.trim();
@@ -661,14 +668,27 @@ async function saveCanteen() {
   const isOpen = ui.canteenIsOpen.checked;
   const acceptingOrders = ui.canteenAcceptingOrders.checked;
 
-  if (!orderPrefix) return;
-
   if (!name || !imageUrl) {
     showToast('Name & Image URL are required.', true);
     return;
   }
 
-  // enforce max 5 featured
+  let orderPrefix;
+
+  if (isEdit) {
+    orderPrefix = existingCanteen?.orderPrefix;
+    if (!orderPrefix) {
+      showToast('Existing order prefix missing.', true);
+      return;
+    }
+  } else {
+    orderPrefix = validateOrderPrefix(
+      ui.canteenOrderPrefix.value.trim().toUpperCase()
+    );
+    if (!orderPrefix) return;
+  }
+
+  // Enforce max 5 featured
   if (isFeatured) {
     const featuredCount = state.canteens.filter(
       c => c.isFeatured && c.id !== state.currentCanteenId
@@ -681,32 +701,32 @@ async function saveCanteen() {
   }
 
   try {
-    if (state.currentCanteenId) {
-      const ref = doc(db, 'canteens', state.currentCanteenId);
-      await updateDoc(ref, {
+    if (isEdit) {
+      await updateDoc(doc(db, 'canteens', state.currentCanteenId), {
         name,
         imageUrl,
-        orderPrefix,
         location,
         isFeatured,
         isOpen,
-        acceptingOrders
+        acceptingOrders,
+        orderPrefix
       });
     } else {
       const ref = await addDoc(collection(db, 'canteens'), {
         name,
-        orderPrefix,
-        orderPrefix,
         imageUrl,
         location,
+        orderPrefix,
         isFeatured,
         isOpen: true,
         acceptingOrders: true,
         owners: [],
-        isDisabled: false
+        isDisabled: false,
+        createdAt: serverTimestamp()
       });
       state.currentCanteenId = ref.id;
     }
+
     showToast('Canteen saved.');
     await loadCanteens();
     showView('canteensView');
@@ -715,6 +735,7 @@ async function saveCanteen() {
     showToast('Failed to save canteen.', true);
   }
 }
+
 
 async function deleteCanteen() {
   if (!state.currentCanteenId) return;
