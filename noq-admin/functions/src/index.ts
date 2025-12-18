@@ -8,6 +8,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret } from "firebase-functions/params";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 
 
 admin.initializeApp();
@@ -287,6 +288,64 @@ export const notifyOrderReady = onDocumentUpdated(
         orderId: event.params.orderId,
         canteenId: after.canteenId,
       },
+    });
+    export const createOrderWithId = onCall(
+  { region: "asia-south1" },
+  async (request) => {
+    const { canteenId, customerEmail, amount } = request.data;
+
+    if (!canteenId || !customerEmail || !amount) {
+      throw new HttpsError(
+        "invalid-argument",
+        "canteenId, customerEmail, and amount are required"
+      );
+    }
+
+    const canteenRef = db.collection("canteens").doc(canteenId);
+    const ordersRef = db.collection("orders");
+
+    return await db.runTransaction(async (tx) => {
+      const canteenSnap = await tx.get(canteenRef);
+
+      if (!canteenSnap.exists) {
+        throw new HttpsError("not-found", "Canteen not found");
+      }
+
+      const canteen = canteenSnap.data()!;
+      const prefix = canteen.orderPrefix;
+
+      if (!prefix) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Canteen orderPrefix not set"
+        );
+      }
+
+      const currentCounter = canteen.orderCounter || 0;
+      const nextCounter = currentCounter + 1;
+
+      const padded = String(nextCounter).padStart(4, "0");
+      const orderId = `${prefix}-${padded}`;
+
+      const newOrderRef = ordersRef.doc();
+
+      tx.set(newOrderRef, {
+        orderId,
+        canteenId,
+        customerEmail,
+        amount,
+        status: "PAID",
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      tx.update(canteenRef, {
+        orderCounter: nextCounter
+      });
+
+      return {
+        firestoreOrderId: newOrderRef.id,
+        orderId
+      };
     });
   }
 );
